@@ -475,7 +475,6 @@ bool prune(port* interface) {
 
 bool connect(library& netlist, library& outlist) {
 	int n_net = netlist.getnum();
-	int type;
 	string name1, name2, type_name1, type_name2;
 	port* interface = NULL;
 	port* temp = NULL;

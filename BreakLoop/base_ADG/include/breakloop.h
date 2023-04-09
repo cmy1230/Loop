@@ -10,6 +10,7 @@ using namespace std;
 
 class port {
 public:
+
 	port() {
 		width = 0;
 		port_name = "";
