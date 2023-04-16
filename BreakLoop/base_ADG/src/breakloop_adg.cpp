@@ -46,13 +46,12 @@ bool is_equivalence(port* port1, port* port2) {
 
 bool connect(library* list) {
 	int num = list->getnum();
-	string type1, type2, element;
+	string type1, type2;
 	port* interface;
 	port* temp;
 	for (int i = 0; i < num; i++) {
 		interface = list->getport(i);
-		interface->getelement(element);
-		if (element == "This")
+		if (interface->getelement_id() == 0)
 			continue;
 		interface->gettype(type1);
 		if (type1 == "I")
@@ -62,7 +61,7 @@ bool connect(library* list) {
 				continue;
 			temp = list->getport(j);
 			temp->gettype(type2);
-			if (type2 == "O")
+			if (type2 != "I")
 				continue;
 			if (is_equivalence(interface, temp))
 				temp->assign(interface);
@@ -89,14 +88,14 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 		return false;
 	file.open(name + "_" + to_string(sub_id), ios::in);
 	if (!file.is_open()) {
-		cerr << "Error in getsub_library:file open failed!" << endl;
+		cerr << "Error in getsub_library:file" + name + "_" + to_string(sub_id) + " open failed!" << endl;
 		return false;
 	}
 	while (getline(file, buf))
 		if (match("\"connections\"", buf) >= 0)
 			break;
 	while (getline(file, buf)) {
-		if (match("},", buf) >= 0)
+		if (match("}", buf) >= 0)
 			break;
 		if (match("\"RF\"", buf) > 0 || match("\"Const\"", buf) > 0)
 			continue;//过滤时序器件
@@ -110,8 +109,14 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 		pointer += 2;
 		next_port = getport_num(buf, pointer);
 		//获得互联语句中的相关信息
-		if (ahead_name == "This")
-			ahead_type = next_type = "I";
+		if (ahead_name == "This") {
+			if (next_name == "This") {
+				ahead_type = "I";
+				next_type = "O";
+			}
+			else
+				ahead_type = next_type = "I";
+		}
 		else if (next_name == "This")
 			ahead_type = next_type = "O";
 		else {
@@ -122,6 +127,7 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 		* 1、当前顶层模块的输入连接次级模块输入
 		* 2、次级模块输出连接当前顶层模块输出
 		* 3、次级模块输出连接次级模块输入
+		* 4、若无次级模块，则顶层模块输入连输出
 		*/
 		ahead = NULL;
 		next = NULL;
@@ -134,11 +140,11 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 				next = temp;
 		}
 		if (ahead == NULL) {
-			ahead = new port(name, id, ahead_name, ahead_id, ahead_type, ahead_port);
+			ahead = new port(name, id, ahead_name, ahead_id, ahead_type, ahead_port, sub_id);
 			list->wirte(ahead);
 		}
 		if (next == NULL) {
-			next = new port(name, id, next_name, next_id, next_type, next_port);
+			next = new port(name, id, next_name, next_id, next_type, next_port, sub_id);
 			list->wirte(next);
 		}
 		ahead->assign(next);
@@ -263,12 +269,223 @@ bool getsub_adg(const string& name) {
 		}
 		outfile << buf << endl;
 	}
+	outfile.open("Top", ios::out);
+	while (getline(file, buf)) {
+		outfile << buf << endl;
+	}
 	module_file.close();
 	return true;
 }
-//获得每个子模块的ADG文件
+//获得每个子模块及顶层模块的ADG文件
+
+bool getconnection(ifstream& file,library* netlist){
+	int pointer;
+	int ahead_id, ahead_port, next_id, next_port;
+	port* port1;
+	port* port2;
+	string ahead_name, next_name, buf;
+	while (getline(file, buf))
+		if (match("\"connections\"", buf) >= 0)
+			break;
+	while (getline(file, buf)) {
+		if (match("},", buf) >= 0)
+			break;
+		if (match("This", buf) >= 0)
+			continue;
+		for (pointer = 0; pointer < buf.length() && buf.at(pointer) != '['; pointer++);
+		ahead_id = getport_num(buf, pointer);
+		ahead_name = getport_name(buf, pointer);
+		pointer += 2;
+		ahead_port = getport_num(buf, pointer);
+		next_id = getport_num(buf, ++pointer);
+		next_name = getport_name(buf, pointer);
+		pointer += 2;
+		next_port = getport_num(buf, pointer);
+		port1 = netlist->getport(ahead_id, ahead_port, "O");
+		port2 = netlist->getport(next_id, next_port, "I");
+		if (port1 == NULL || port2 == NULL)
+			continue;
+		port1->assign(port2);
+	}
+	return true;
+}
+//进行子模块之间的互联
+
+bool getsub_module(library* netlist) {
+	library list;
+	ifstream file;
+	file.open("Top", ios::in);
+	if (!file.is_open()) {
+		cerr << "Error in getsub_module:file open failed!" << endl;
+		return false;
+	}
+	int module_id, id;
+	string element, buf;
+	while (getline(file, buf)) {
+		if (match("} ],", buf) >= 0)
+			break;
+		while (getline(file, buf)) {
+			if (match("\"id\"", buf) >= 0) {
+				id = getnumber(buf + " ");
+				break;
+			}
+			if (match("\"module_id\"", buf) >= 0) {
+				module_id = getnumber(buf);
+				continue;
+			}
+			if (match("\"type\"", buf) >= 0)
+				element = gettype_name(buf);
+		}
+		if (element == "This")
+			continue;
+		list.clear();
+		getsub_library(element, module_id, id, &list);
+		netlist->merge(&list);
+	}
+	getconnection(file, netlist);
+	file.close();
+	return true;
+}
+//实例化每个具体的子模块
+
+bool wirte_chisel(ofstream* file, port* port1, port* port2, int number) {
+	*file << position << "(" << port2->getorder() << ").io.";
+	*file << input_name[luts[port2->getorder()]->getinput(port2->getid())] + "(";
+	*file << luts[port2->getorder()]->getinput_id(port2->getid());
+	*file << ") := RegNext(" << position << "(" << port1->getorder() << ").io.";
+	*file << output_name[luts[port2->getorder()]->getinput(port1->getid())] + "(";
+	*file << luts[port2->getorder()]->getinput_id(port1->getid()) << "))" << endl;
+	return true;
+}
+//书写chisel文件
+
+bool ergodic(stack& T, int& port_id, string& type, int& element_id,int& sub_id,string& sub_name) {
+	if (T.empty())
+		return false;
+	port* temp = T.pop();
+	port** next = temp->getnext();
+	int n = temp->getnum();
+	if (temp == NULL || next == NULL)
+		return false;
+	element_id = temp->getelement_id();
+	port_id = temp->getid();
+	sub_id = temp->getsub_id();
+	temp->getsub_module(sub_name);
+	temp->gettype(type);
+	for (int i = 0; i < n; i++)
+		T.push(next[i]);
+	return true;
+}
+//单次深度遍历操作
+
+bool optimize(port** ports, int num, int out_num) {
+	ofstream file;
+	file.open("breakloop.xdc", ios::out);
+	stack T;
+	port* port1;
+	port* port2;
+	int reg_num = 0;
+	int port_id1, port_id2, sub_id1, sub_id2;
+	int element_id2;
+	string type1, type2, sub2;
+	string temp = "";
+	for (int i = 0; i < num; i += 2) {
+		T.clear();
+		port1 = ports[i];
+		port2 = ports[i + 1];
+		port_id1 = port1->getid();
+		sub_id1 = port1->getsub_id();
+		T.push(port2);
+		port1->unassign(port2);
+		port1->assign(port2);
+		while (!T.empty()) {
+			if (port1 == T.gettop()) {
+				port_id2 = port2->getid();
+				sub_id2 = port2->getsub_id();
+				cout << "wirte constraints...\t" << reg_num << endl;
+				wirte_chisel(&file, port1, port2, reg_num++);
+				port1->unassign(port2);
+				if (port1->getnum() == 0)
+					prune(port1);
+				break;
+			}
+			while (!T.empty() && T.gettop()->getvisited() == i)
+				T.pop();
+			if (!T.empty() && T.gettop()->getvisited() < i)
+				T.gettop()->changevisited(i);
+			//通过对已遍历的端口进行标记，防止过深的路径影响运行速度
+			if (!T.empty())
+				ergodic(T, port_id2, type2, element_id2, sub_id2, sub2);
+		}
+	}
+	file.close();
+	return true;
+}
+//对得到的寄存器位置进行优化
+
+bool breakloop(library& outlist) {
+	/*ofstream file;
+	file.open("breakloop.xdc", ios::out);
+	//file << "set_hierarchy_separator " << spacer << endl;*/
+	port* interface = NULL;
+	port* port1;
+	port* port2;
+	port* ports[max];
+	bool getloop = true;
+	int num = 0;
+	int out_num = outlist.getnum();
+	//int width;
+	stack T1, T2;
+	int element_id1, element_id2, sub_id1, sub_id2, id1, id2;
+	int previous_sub, previous_element, previous_id;
+	string type1, type2, previous_type, sub_name1, sub_name2, previous_name;
+	string temp;
+	while (getloop) {
+		getloop = false;
+		for (int i = 0; i < out_num; i++) {
+			interface = outlist.getport(i);
+			T1.push(interface);
+			T2.push(interface);
+			while (!T1.empty() && !T2.empty()) {
+				port1 = T1.gettop();
+				port2 = T2.gettop();
+				ergodic(T1, previous_id, previous_type, previous_element, previous_sub, previous_name);
+				if (T1.empty())
+					break;
+				ergodic(T1, id1, type1, element_id1, sub_id1, sub_name1);
+				ergodic(T2, id2, type2, element_id2, sub_id2, sub_name2);
+				if (T1.empty() || T2.empty())
+					break;
+				if (id1 == id2 && element_id1 == element_id2 && sub_id1 == sub_id2 && type1 == type2) {
+					if (previous_element != 0 || element_id1 != 0) {
+						ergodic(T1, id1, type1, element_id1, sub_id1, sub_name1);
+						continue;
+					}
+					if (previous_name != "GIB" || sub_name2 != "GIB") {
+						ergodic(T1, id1, type1, element_id1, sub_id1, sub_name1);
+						continue;
+					}
+					port1->unassign(port2);
+					ports[num++] = port1;
+					ports[num++] = port2;
+					getloop = true;
+					break;
+				}
+				if (port1 == port2)
+					ergodic(T1, id1, type1, element_id1, sub_id1, sub_name1);
+			}
+			T1.clear();
+			T2.clear();
+		}
+	}
+	return optimize(ports, num, out_num);
+}
+//打破环路
 
 int main() {
 	getsub_adg("cgra_adg.json");
+	library netlist;
+	getsub_module(&netlist);
+	breakloop(netlist);
 	return 0;
 }

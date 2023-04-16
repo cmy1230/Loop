@@ -10,7 +10,7 @@ using namespace std;
 #define max 50000 //栈的大小
 #define spacer "/"//层级分隔符
 #define space '/'
-
+#define position "gibs"
 
 const string input_name[] = {"itrackW","itrackN","itrackE","itrackS","opinNE","opinNW","opinSW","opinSE"};
 const string output_name[] = { "otrackW","otrackN","otrackE","otrackS","ipinNE","ipinNW","ipinSW","ipinSE" };
@@ -144,13 +144,14 @@ public:
 		visited = -1;
 	}
 
-	port(string module_name, int module_id, string ele_name, int ele_id, string port_type, int port_id) {
+	port(string module_name, int module_id, string ele_name, int ele_id, string port_type, int port_id,int order_id) {
 		sub_module = module_name;
 		sub_id = module_id;
 		element = ele_name;
 		element_id = ele_id;
 		type = port_type;
 		id = port_id;
+		order = order_id;
 	}
 
 	bool print() {
@@ -240,6 +241,11 @@ public:
 	}
 	//断开后续端口
 
+	bool changeorder(int num) {
+		order = num;
+		return true;
+	}
+
 	bool changevisited(int num) {
 		visited = num;
 		return true;
@@ -251,7 +257,7 @@ public:
 	}
 
 	int  getsub_id() {
-		return true;
+		return sub_id;
 	}
 
 	bool getelement(string& s) {
@@ -288,6 +294,10 @@ public:
 		return n_ahead;
 	}
 
+	int getorder() {
+		return order;
+	}
+
 	int getvisited() {
 		return visited;
 	}
@@ -303,6 +313,7 @@ protected:
 	int n_next;
 	port** ahead;
 	int n_ahead;
+	int order;
 	int visited;
 };
 
@@ -355,6 +366,18 @@ public:
 		return ports[n];
 	}
 
+	port* getport(int sub_id, int id, string type) {
+		string sub_module, port_type;
+		for (int i = 0; i < num; i++) {
+			if (ports[i]->getelement_id() != 0)
+				continue;
+			ports[i]->gettype(port_type);
+			if ((sub_id == ports[i]->getsub_id()) && (id == ports[i]->getid()) && (type == port_type))
+				return ports[i];
+		}
+		return NULL;
+	}
+
 	/*bool deleteport(int n) {
 		if (n >= num)
 			return false;
@@ -372,6 +395,13 @@ public:
 		delete[] temp;
 		return true;
 	}*/
+
+	bool merge(library* list) {
+		int n = list->getnum();
+		for (int i = 0; i < n; i++)
+			this->wirte(list->getport(i));
+		return true;
+	}
 
 	bool wirte(port* interface) {
 		num++;
