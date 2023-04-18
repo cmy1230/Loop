@@ -19,6 +19,11 @@ int num_track = 0;
 int data_width = 0;
 int element_id[element_max];
 int element_num = 0;
+int gib = 0;
+int gpe = 0;
+int ib = 0;
+int ob = 0;
+
 
 class lut {
 public:
@@ -141,21 +146,24 @@ public:
 		n_next = 0;
 		ahead = NULL;
 		n_ahead = 0;
+		order = 0;
+		module_id = 0;
 		visited = -1;
 	}
 
-	port(string module_name, int module_id, string ele_name, int ele_id, string port_type, int port_id,int order_id) {
+	port(string module_name, int sub_module_id, string ele_name, int ele_id, string port_type, int port_id,int order_id,int mo_id) {
 		sub_module = module_name;
-		sub_id = module_id;
+		sub_id = sub_module_id;
 		element = ele_name;
 		element_id = ele_id;
 		type = port_type;
 		id = port_id;
 		order = order_id;
+		module_id = mo_id;
 	}
 
 	bool print() {
-		cout << "Module:" << sub_module << sub_id << "\tElement:" << element << element_id << "\tType:" << type << "\tId:" << id << "\tNext:" << n_next << endl;
+		cout << "Module:" << sub_module << sub_id << "\tElement:" << element << element_id << "\tType:" << type << "\tId:" << id << "\tNext:" << n_next << "\tOrder:" << order << endl;
 		return true;
 	}
 
@@ -246,6 +254,11 @@ public:
 		return true;
 	}
 
+	bool changemodule_id(int num) {
+		module_id = num;
+		return true;
+	}
+
 	bool changevisited(int num) {
 		visited = num;
 		return true;
@@ -298,6 +311,10 @@ public:
 		return order;
 	}
 
+	int getmodule_id() {
+		return module_id;
+	}
+
 	int getvisited() {
 		return visited;
 	}
@@ -314,6 +331,7 @@ protected:
 	port** ahead;
 	int n_ahead;
 	int order;
+	int module_id;
 	int visited;
 };
 

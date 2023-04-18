@@ -77,6 +77,7 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 	string buf;
 	int pointer;
 	int ahead_id, ahead_port, next_id, next_port;
+	int sub_num;
 	string ahead_name, ahead_type, next_name, next_type, type;
 	port* ahead;
 	port* next;
@@ -87,6 +88,14 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 	if (sub_id == element_num)
 		return false;
 	file.open(name + "_" + to_string(sub_id), ios::in);
+	if (name == "GIB")
+		sub_num = gib++;
+	else if (name == "GPE")
+		sub_num = gpe++;
+	else if (name == "OB")
+		sub_num = ob++;
+	else if (name == "IB")
+		sub_num = ib++;
 	if (!file.is_open()) {
 		cerr << "Error in getsub_library:file" + name + "_" + to_string(sub_id) + " open failed!" << endl;
 		return false;
@@ -140,11 +149,11 @@ bool getsub_library(const string& name, int num, int id, library* list) {
 				next = temp;
 		}
 		if (ahead == NULL) {
-			ahead = new port(name, id, ahead_name, ahead_id, ahead_type, ahead_port, sub_id);
+			ahead = new port(name, id, ahead_name, ahead_id, ahead_type, ahead_port, sub_num, sub_id);
 			list->wirte(ahead);
 		}
 		if (next == NULL) {
-			next = new port(name, id, next_name, next_id, next_type, next_port, sub_id);
+			next = new port(name, id, next_name, next_id, next_type, next_port, sub_num, sub_id);
 			list->wirte(next);
 		}
 		ahead->assign(next);
@@ -350,11 +359,11 @@ bool getsub_module(library* netlist) {
 
 bool wirte_chisel(ofstream* file, port* port1, port* port2, int number) {
 	*file << position << "(" << port2->getorder() << ").io.";
-	*file << input_name[luts[port2->getorder()]->getinput(port2->getid())] + "(";
-	*file << luts[port2->getorder()]->getinput_id(port2->getid());
+	*file << input_name[luts[port2->getmodule_id()]->getinput(port2->getid())] + "(";
+	*file << luts[port2->getmodule_id()]->getinput_id(port2->getid());
 	*file << ") := RegNext(" << position << "(" << port1->getorder() << ").io.";
-	*file << output_name[luts[port2->getorder()]->getinput(port1->getid())] + "(";
-	*file << luts[port2->getorder()]->getinput_id(port1->getid()) << "))" << endl;
+	*file << output_name[luts[port1->getmodule_id()]->getinput(port1->getid())] + "(";
+	*file << luts[port1->getmodule_id()]->getinput_id(port1->getid()) << "))" << endl;
 	return true;
 }
 //ÊéÐ´chiselÎÄ¼þ
