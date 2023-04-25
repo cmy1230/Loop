@@ -358,12 +358,22 @@ bool getsub_module(library* netlist) {
 //实例化每个具体的子模块
 
 bool wirte_chisel(ofstream* file, port* port1, port* port2, int number) {
-	*file << position << "(" << port2->getorder() << ").io.";
-	*file << input_name[luts[port2->getmodule_id()]->getinput(port2->getid())] + "(";
-	*file << luts[port2->getmodule_id()]->getinput_id(port2->getid());
-	*file << ") := RegNext(" << position << "(" << port1->getorder() << ").io.";
-	*file << output_name[luts[port1->getmodule_id()]->getinput(port1->getid())] + "(";
-	*file << luts[port1->getmodule_id()]->getinput_id(port1->getid()) << "))" << endl;
+	if (1) {
+		*file << port2->getorder() << endl;
+		*file << luts[port2->getmodule_id()]->getinput(port2->getid()) << endl;
+		*file << luts[port2->getmodule_id()]->getinput_id(port2->getid()) << endl;
+		*file << port1->getorder() << endl;
+		*file << luts[port1->getmodule_id()]->getinput(port1->getid()) << endl;
+		*file << luts[port1->getmodule_id()]->getinput_id(port1->getid()) << endl;
+	}
+	else {
+		*file << position << "(" << port2->getorder() << ").io.";
+		*file << input_name[luts[port2->getmodule_id()]->getinput(port2->getid())] + "(";
+		*file << luts[port2->getmodule_id()]->getinput_id(port2->getid());
+		*file << ") := RegNext(" << position << "(" << port1->getorder() << ").io.";
+		*file << output_name[luts[port1->getmodule_id()]->getinput(port1->getid())] + "(";
+		*file << luts[port1->getmodule_id()]->getinput_id(port1->getid()) << "))" << endl;
+	}
 	return true;
 }
 //书写chisel文件
@@ -405,12 +415,9 @@ bool optimize(port** ports, int num, int out_num) {
 		port_id1 = port1->getid();
 		sub_id1 = port1->getsub_id();
 		T.push(port2);
-		port1->unassign(port2);
 		port1->assign(port2);
 		while (!T.empty()) {
 			if (port1 == T.gettop()) {
-				port_id2 = port2->getid();
-				sub_id2 = port2->getsub_id();
 				cout << "wirte constraints...\t" << reg_num << endl;
 				wirte_chisel(&file, port1, port2, reg_num++);
 				port1->unassign(port2);
@@ -492,9 +499,23 @@ bool breakloop(library& outlist) {
 //打破环路
 
 int main() {
+	ofstream file, file1;
+	file.open("result.txt", ios::app);
+	file1.open("result1.txt", ios::app);
+	int i = 9;
+	int j = 9;
+	clock_t start, end;
+	start = clock();
 	getsub_adg("cgra_adg.json");
 	library netlist;
 	getsub_module(&netlist);
+	end = clock();
 	breakloop(netlist);
+	file << end - start << endl;
+	file1 << i * j << endl;
+	file.close();
+	file1.close();
+	file.open("end.txt", ios::app);
+	file.close();
 	return 0;
 }
