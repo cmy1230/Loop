@@ -2,7 +2,7 @@
 #include<string>
 #include"breakloop.h"
 #include<fstream>
-#include<time.h>//¸Ã¿â½öÓÃÓÚ²âÊÔ
+#include<time.h>//è¯¥åº“ä»…ç”¨äºæµ‹è¯•
 
 using namespace std;
 
@@ -16,7 +16,7 @@ bool getport_name(string& port_name,string& origin_name, string& buf) {
 		port_name.push_back(buf.at(i));
 	return true;
 }
-//¶Ë¿ÚÃû³Æ»ñÈ¡
+//ç«¯å£åç§°è·å–
 
 int getport_width(string& buf) {
 	int width = 0;
@@ -26,7 +26,7 @@ int getport_width(string& buf) {
 		width = width * 10 + buf.at(i) - 48;
 	return width;
 }
-//¶Ë¿ÚÎ»¿í»ñÈ¡
+//ç«¯å£ä½å®½è·å–
 
 bool getelement(string file_name) {
 	ifstream file, module_file, net_file;
@@ -44,9 +44,9 @@ bool getelement(string file_name) {
 		for (int i = 0; i < buf.length(); i++)
 			if (buf.at(i) != ' ') {
 				for (; i < buf.length() && buf.at(i) != ' '; i++)
-					element.push_back(buf.at(i));//Ä£¿éÃû³Æ
+					element.push_back(buf.at(i));//æ¨¡å—åç§°
 				for (i = i + 1; i < buf.length() && buf.at(i) != ' '; i++)
-					element_name.push_back(buf.at(i));//Ä£¿éÊµÀı»¯Ãû³Æ
+					element_name.push_back(buf.at(i));//æ¨¡å—å®ä¾‹åŒ–åç§°
 				if (element == "" || element_name == "")
 					break;
 				module_file.open("module", ios::in);
@@ -90,7 +90,7 @@ bool getelement(string file_name) {
 	file.close();
 	return true;
 }
-//Ôª¼şÍø±í»ñÈ¡
+//å…ƒä»¶ç½‘è¡¨è·å–
 
 bool getnet(string file_name) {
 	ifstream file, module_file, net_file, element_file;
@@ -136,9 +136,9 @@ bool getnet(string file_name) {
 		for (int i = 0; i < buf.length(); i++)
 			if (buf.at(i) != ' ') {
 				for (; i < buf.length() && buf.at(i) != ' '; i++)
-					element.push_back(buf.at(i));//Ä£¿éÃû³Æ
+					element.push_back(buf.at(i));//æ¨¡å—åç§°
 				for (i = i + 1; i < buf.length() && buf.at(i) != ' '; i++)
-					element_name.push_back(buf.at(i));//Ä£¿éÊµÀı»¯Ãû³Æ
+					element_name.push_back(buf.at(i));//æ¨¡å—å®ä¾‹åŒ–åç§°
 				if (element == "" || element_name == "")
 					break;
 				module_file.open("module", ios::in);
@@ -167,7 +167,7 @@ bool getnet(string file_name) {
 									out_file << "O " << width << endl;
 									break;
 								}
-						}//½Ó¿ÚÌØÊâÊéĞ´
+						}//æ¥å£ç‰¹æ®Šä¹¦å†™
 						element_file.close();
 						if (module_name == element)
 							break;
@@ -175,7 +175,7 @@ bool getnet(string file_name) {
 						port_name = "";
 						while (getline(net_file, net))
 							out_file << spacer << element_name << net << endl;
-						net_file.close();//´Î¼¶Ä£¿é»¥ÁªÊéĞ´
+						net_file.close();//æ¬¡çº§æ¨¡å—äº’è”ä¹¦å†™
 						break;
 					}
 				}
@@ -186,7 +186,7 @@ bool getnet(string file_name) {
 	file.close();
 	return true;
 }
-//»¥ÁªÍø±í»ñÈ¡
+//äº’è”ç½‘è¡¨è·å–
 
 bool getmodule(string file_name) {
 	ifstream file;
@@ -226,7 +226,7 @@ bool getmodule(string file_name) {
 	file.close();
 	return true;
 }
-//Ä£¿éÍø±í»ñÈ¡
+//æ¨¡å—ç½‘è¡¨è·å–
 
 bool getnet_name(string& element, string& net_name) {
 	string temp = "";
@@ -243,7 +243,7 @@ bool getnet_name(string& element, string& net_name) {
 	}
 	return true;
 }
-//´ÓÔª¼şÃû³ÆÖĞÌáÈ¡ÍøÂçÃû³Æ
+//ä»å…ƒä»¶åç§°ä¸­æå–ç½‘ç»œåç§°
 
 bool opennetlist(library& net, string file_name) {
 	ifstream file;
@@ -331,7 +331,7 @@ bool opennetlist(library& net, string file_name) {
 	file.close();
 	return true;
 }
-//´ÓÔª¼şÍø±íÖĞÌáÈ¡¶Ë¿Ú
+//ä»å…ƒä»¶ç½‘è¡¨ä¸­æå–ç«¯å£
 
 port* getport(library& net, string net_name, string port_name) {
 	int n_net = net.getnum();
@@ -347,7 +347,7 @@ port* getport(library& net, string net_name, string port_name) {
 	}
 	return port_in;
 }
-//¸ù¾İ¶Ë¿ÚÃûºÍÍøÂçÃû²éÕÒ¶ÔÓ¦¶Ë¿ÚÖ¸Õë
+//æ ¹æ®ç«¯å£åå’Œç½‘ç»œåæŸ¥æ‰¾å¯¹åº”ç«¯å£æŒ‡é’ˆ
 
 port* getport(library& net, string port_name) {
 	int n_net = net.getnum();
@@ -363,7 +363,7 @@ port* getport(library& net, string port_name) {
 	}
 	return port_in;
 }
-//¸ù¾İ¶Ë¿ÚÃû²éÕÒ¶ÔÓ¦¶Ë¿ÚÖ¸Õë
+//æ ¹æ®ç«¯å£åæŸ¥æ‰¾å¯¹åº”ç«¯å£æŒ‡é’ˆ
 
 bool interconnect(library& net, string file_name) {
 	ifstream file;
@@ -424,7 +424,7 @@ bool interconnect(library& net, string file_name) {
 				net.wirte(port_in);
 				net.wirte(port_out);
 				continue;
-			}//½Ó¿Ú´¦Àí
+			}//æ¥å£å¤„ç†
 			for (start += 1; start < buf.length(); start++) {
 				if (buf.at(start) == ' ') {
 					port_out = getport(net, net_name, port_name_out);
@@ -459,7 +459,7 @@ bool interconnect(library& net, string file_name) {
 	file.close();
 	return true;
 }
-//´ÓÍøÂçÍø±íÖĞÌáÈ¡¶ÔÓ¦¶Ë¿Ú²¢¹¹³É»¥Áª¹ØÏµ
+//ä»ç½‘ç»œç½‘è¡¨ä¸­æå–å¯¹åº”ç«¯å£å¹¶æ„æˆäº’è”å…³ç³»
 
 bool prune(port* interface) {
 	if (interface->getnum() > 0 || interface->getahead_num() == 0)
@@ -471,7 +471,7 @@ bool prune(port* interface) {
 	}
 	return true;
 }
-//¶ÔºóÖÃ¶Ë¿ÚÊıÎª0µÄ¶Ë¿Ú½øĞĞ¼ôÖ¦
+//å¯¹åç½®ç«¯å£æ•°ä¸º0çš„ç«¯å£è¿›è¡Œå‰ªæ
 
 bool connect(library& netlist, library& outlist) {
 	int n_net = netlist.getnum();
@@ -508,7 +508,7 @@ bool connect(library& netlist, library& outlist) {
 	}
 	return true;
 }
-//¹¹³É×éºÏÔª¼şµÄ»¥Áª¹ØÏµ
+//æ„æˆç»„åˆå…ƒä»¶çš„äº’è”å…³ç³»
 
 bool wirte_constraints(ofstream* file, string element_name1, string element_name2,string port_name1, string port_name2, int width) {
 	bool way = false;
@@ -539,7 +539,7 @@ bool wirte_constraints(ofstream* file, string element_name1, string element_name
 	*file << endl;
 	return true;
 }
-//ÊéĞ´Ô¼ÊøÎÄ¼ş
+//ä¹¦å†™çº¦æŸæ–‡ä»¶
 
 bool getchisel_element(string element_name, string& type, int& number) {
 	string temp = "";
@@ -565,7 +565,7 @@ bool getchisel_element(string element_name, string& type, int& number) {
 	}
 	return true;
 }
-//´Ó¶Ë¿ÚÃûÖĞ»ñµÃchiselÓï¾äÖĞÆ÷¼şÏà¹ØĞÅÏ¢
+//ä»ç«¯å£åä¸­è·å¾—chiselè¯­å¥ä¸­å™¨ä»¶ç›¸å…³ä¿¡æ¯
 
 bool getchisel_port(string port_name, string& type, int& number) {
 	string temp = "";
@@ -592,7 +592,7 @@ bool getchisel_port(string port_name, string& type, int& number) {
 
 	return true;
 }
-//´Ó¶Ë¿ÚÃûÖĞ»ñµÃchiselÓï¾äÖĞ¶Ë¿ÚµÄÏà¹ØĞÅÏ¢
+//ä»ç«¯å£åä¸­è·å¾—chiselè¯­å¥ä¸­ç«¯å£çš„ç›¸å…³ä¿¡æ¯
 
 bool wirte_chisel(ofstream* file,  string port_name1, string port_name2, int number) {
 	string chisel_type;
@@ -608,7 +608,7 @@ bool wirte_chisel(ofstream* file,  string port_name1, string port_name2, int num
 	// ") := breakloop_reg_" << number << endl;
 	return true;
 }
-//ÊéĞ´chiselÎÄ¼ş
+//ä¹¦å†™chiselæ–‡ä»¶
 
 bool ergodic(stack& T, string& port_name,string& type, string& element_name,string& net_name) {
 	if (T.empty())
@@ -626,7 +626,7 @@ bool ergodic(stack& T, string& port_name,string& type, string& element_name,stri
 		T.push(next[i]);
 	return true;
 }
-//µ¥´ÎÉî¶È±éÀú²Ù×÷
+//å•æ¬¡æ·±åº¦éå†æ“ä½œ
 
 bool optimize(port** ports, int num,int out_num) {
 	ofstream file;
@@ -660,7 +660,7 @@ bool optimize(port** ports, int num,int out_num) {
 				T.pop();
 			if (!T.empty() && T.gettop()->getvisited() < i)
 				T.gettop()->changevisited(i);
-			//Í¨¹ı¶ÔÒÑ±éÀúµÄ¶Ë¿Ú½øĞĞ±ê¼Ç£¬·ÀÖ¹¹ıÉîµÄÂ·¾¶Ó°ÏìÔËĞĞËÙ¶È
+			//é€šè¿‡å¯¹å·²éå†çš„ç«¯å£è¿›è¡Œæ ‡è®°ï¼Œé˜²æ­¢è¿‡æ·±çš„è·¯å¾„å½±å“è¿è¡Œé€Ÿåº¦
 			if (!T.empty())
 				ergodic(T, port_name2, type2, element_name2, net_name2);
 		}
@@ -668,7 +668,7 @@ bool optimize(port** ports, int num,int out_num) {
 	file.close();
 	return true;
 }
-//¶ÔµÃµ½µÄ¼Ä´æÆ÷Î»ÖÃ½øĞĞÓÅ»¯
+//å¯¹å¾—åˆ°çš„å¯„å­˜å™¨ä½ç½®è¿›è¡Œä¼˜åŒ–
 
 bool breakloop(library& outlist) {
 	/*ofstream file;
@@ -744,7 +744,7 @@ bool breakloop(library& outlist) {
 	//file.close();
 	//return true;
 }
-//´òÆÆ»·Â·
+//æ‰“ç ´ç¯è·¯
 
 int main() {
 	ofstream file,file1;
@@ -756,7 +756,7 @@ int main() {
 	library net;
 	library net1;
 	start = clock();
-	getmodule("CGRA.v");
+	getmodule("CGRA.v");//input
 	opennetlist(net, "CGRA_element");
 	interconnect(net, "CGRA_net");
 	connect(net, net1);
