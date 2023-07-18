@@ -13,3 +13,7 @@ If you want to run Chisel for TRAM with combinational logic loops, you can refer
 Moreover, if you have not added “--no-check-comb-loops” and successfully run chisel, it indicates that the circuit does not contain combinational logic loops
 
 After placing the input in the corresponding position, run the C++code to obtain the output
+
+Output is in the breakloop.xdc file
+
+Place the output in TRAM-main\cgra-mg\src\main\scala\dsa\template\CGRA.scala, and regenerate Verilog and ADG to obtain TRAM CGRA without a combinational logic loop
